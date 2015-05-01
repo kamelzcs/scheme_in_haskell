@@ -9,6 +9,8 @@
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad
+import Control.Applicative ( (<$>), )
+import Numeric
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -19,16 +21,26 @@ spaces = skipMany1 space
 data LispVal = Atom String
              | List [LispVal]
              | DottedList [LispVal] LispVal
+             | Float Double
              | Number Integer
              | String String
              | Bool Bool
 
+escapedChars :: Parser Char
+escapedChars = do char '\\' 
+                  x <- oneOf "\\\"nrt" 
+                  return $ case x of 
+                    '\\' -> x
+                    '"'  -> x
+                    'n'  -> '\n'
+                    'r'  -> '\r'
+                    't'  -> '\t'
+
 parseString :: Parser LispVal
-parseString = do
-                char '"'
-                x <- many (noneOf "\"")
-                char '"'
-                return $ String x
+parseString = do char '"'
+                 x <- many $ escapedChars <|> noneOf "\"\\"
+                 char '"'
+                 return $ String x
 
 parseAtom :: Parser LispVal
 parseAtom = do 
@@ -42,13 +54,20 @@ parseAtom = do
 
 parseNumber :: Parser LispVal
 parseNumber = do
-          digits <- many1 digit
-          (return . Number . read) digits
+          digits <-  many1 digit
+          return $ Number (read  digits)
+
+parseFloat :: Parser LispVal
+parseFloat = do x <- many1 digit
+                char '.'
+                y <- many1 digit
+                return $ Float (fst.head$readFloat (x++"."++y))
 
 parseExpr :: Parser LispVal
 parseExpr = parseAtom
          <|> parseString
          <|> parseNumber
+         <|> parseFloat
 
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
