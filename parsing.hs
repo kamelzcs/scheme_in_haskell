@@ -434,7 +434,6 @@ bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
      where extendEnv bindings env = liftM (++ env) (mapM addBinding bindings)
            addBinding (var, value) = do ref <- newIORef value
                                         return (var, ref)
-
 main :: IO ()
 main = do args <- getArgs
           if null args then runRepl else runOne $ args
