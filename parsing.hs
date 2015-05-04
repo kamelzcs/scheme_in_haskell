@@ -1,11 +1,3 @@
-#! /usr/bin/env runhugs +l
---
--- parsing.hs
--- Copyright (C) 2015 zhao <zhao@kamel-ThinkPad-X201>
---
--- Distributed under terms of the MIT license.
---
-
 {-# LANGUAGE ExistentialQuantification #-}
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
